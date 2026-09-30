@@ -9,4 +9,4 @@ mkdir -p "$HOME/Library/LaunchAgents"
 launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 cp "$DIR/$LABEL.plist" "$TARGET"
 launchctl bootstrap "gui/$(id -u)" "$TARGET"
-echo "Installed. Runs daily at 4:00 AM (catches up at login if missed); log: ~/Library/Logs/OrganizeOldDownloads.log"
+echo "Installed. View log: ~/Library/Logs/OrganizeOldDownloads.log"

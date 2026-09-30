@@ -9,4 +9,4 @@ mkdir -p "$HOME/Library/LaunchAgents"
 launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 cp "$DIR/$LABEL.plist" "$TARGET"
 launchctl bootstrap "gui/$(id -u)" "$TARGET"
-echo "Installed. Runs daily at 4:00 AM; log: ~/Library/Logs/courses-autocommit.log"
+echo "Installed. View log: ~/Library/Logs/courses-autocommit.log"
