@@ -1,13 +1,20 @@
 # Automations
 
-Small automated scripts for my personal use on macOS.
+Small automations for my personal use. Both scripts that run on my Mac, and Claude routines that run on claude.ai.
+
+Mac Scripts:
 
 - [auto-commit-coursework](auto-commit-coursework) commits changes in `~/Documents/coursework` once a day.
 - [organize-old-downloads](organize-old-downloads) moves downloads added more than 30 days ago into `~/Downloads/YYYY/MM` once a day.
 
-Both are scheduled for 4:00 AM. If the Mac is asleep then, launchd runs them when it wakes, so the logs usually show a later time.
+Claude routines:
 
-Each folder has its script, a launchd plist, an `automation.conf` describing it, and a link to its log in `~/Library/Logs`. Install and remove them from here:
+- [check-pool-hours](check-pool-hours) warns me if a pool won't be open for one of my swims in the next 3 days.
+- [scan-for-event-invites](scan-for-event-invites) finds events in my email, scores them, and adds the ones I pick to my calendar.
+
+The scripts are scheduled for 4:00 AM. If the Mac is asleep then, launchd runs them when it wakes, so the logs usually show a later time. The routines run on claude.ai on a schedule, not on this Mac. Each routine's folder has a copy of its prompt in `prompt.md` and its response formats in `template.md`. Editing them doesn't change the routine.
+
+Each script's folder has the script, a launchd plist, an `automation.conf` describing it, and a link to its log in `~/Library/Logs`. Install and remove them from here:
 
 ```bash
 # For all automations
