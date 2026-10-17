@@ -7,14 +7,14 @@
 	<key>ProgramArguments</key>
 	<array>
 		<string>/bin/bash</string>
-		<string>/Users/USERNAME/Automations/organize-old-downloads/organize_old_downloads.sh</string>
+		<string>__DIR__/organize_old_downloads.sh</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>
 	<key>StandardErrorPath</key>
-	<string>/Users/USERNAME/Library/Logs/OrganizeOldDownloads.log</string>
+	<string>__HOME__/Library/Logs/OrganizeOldDownloads.log</string>
 	<key>StandardOutPath</key>
-	<string>/Users/USERNAME/Library/Logs/OrganizeOldDownloads.log</string>
+	<string>__HOME__/Library/Logs/OrganizeOldDownloads.log</string>
 	<key>StartCalendarInterval</key>
 	<dict>
 		<key>Hour</key>
