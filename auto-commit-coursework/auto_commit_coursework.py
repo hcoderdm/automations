@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Commits uncommitted changes in ~/Projects/courses, one commit per changed .tex file.
+"""Commits uncommitted changes in ~/Documents/coursework, one commit per changed .tex file.
 Local only: never pushes, pulls, amends, or rewrites history.
-Triggered daily by the launchd agent com.hcoderdm.courses-autocommit.
+Triggered daily by the launchd agent com.hcoderdm.coursework-autocommit.
 
-Usage: auto_commit_courses.py [--test] [REPO]
+Usage: auto_commit_coursework.py [--test] [REPO]
   --test  print the commits that would be made without committing anything
 
 Commit messages follow `<COURSE> <ASSIGNMENT>: <Added|Modified|Deleted|Renamed> <file>`,
 e.g. `STAT110 HW3: Modified hw3.tex`. Leftover non-.tex changes go into one `REPO:` commit.
+Each commit's author date is when its files were last modified, not when this ran, and the
+commits are made oldest first.
 """
 
 import os
@@ -16,10 +18,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from collections import namedtuple
 from datetime import datetime
 
-DEFAULT_REPO = os.path.expanduser("~/Projects/courses")
+DEFAULT_REPO = os.path.expanduser("~/Documents/coursework")
 # Leading folders that aren't the course, as in `2026-2027/fall/...`
 YEAR_RE = re.compile(r"^\d{4}-\d{4}$")
 SEMESTERS = {"fall", "spring"}
@@ -143,11 +146,18 @@ def message_for(changes):
     return message
 
 
-def commit(repo, changes, test):
+def work_date(repo, changes):
+    """When the work in a group was done: the newest mtime among its files still on disk."""
+    mtimes = [os.path.getmtime(os.path.join(repo, c.path))
+              for c in changes if c.status != "D" and os.path.lexists(os.path.join(repo, c.path))]
+    return datetime.fromtimestamp(max(mtimes) if mtimes else time.time()).astimezone()
+
+
+def commit(repo, changes, date, test):
     message = message_for(changes)
     paths = sorted({p for c in changes for p in (c.path, c.old) if p})
     if test:
-        log(f"[test] {message}  <- {', '.join(paths)}")
+        log(f"[test] {date:%F %T} {message}  <- {', '.join(paths)}")
         return
     # Deleted and renamed-away paths may still be on disk (e.g. untracked but now ignored).
     gone = sorted({c.path for c in changes if c.status == "D"} | {c.old for c in changes if c.old})
@@ -163,7 +173,8 @@ def commit(repo, changes, test):
             git(repo, "add", "-A", "--", *present, env=env)
         if gone:
             git(repo, "rm", "-q", "--cached", "--ignore-unmatch", "--", *gone, env=env)
-        git(repo, "commit", "-q", "-m", message, env=env)
+        git(repo, "commit", "-q", "-m", message,
+            env={**env, "GIT_AUTHOR_DATE": date.isoformat(timespec="seconds")})
     finally:
         os.remove(tmp_index)
     git(repo, "reset", "-q", "--", *paths)
@@ -184,7 +195,7 @@ def main():
             log("No changes")
             return
 
-        remaining = list(changes)
+        groups, remaining = [], list(changes)
         for tex in sorted((c for c in changes if c.path.endswith(".tex")), key=lambda c: c.path):
             folder = os.path.dirname(tex.path)
             stem = os.path.splitext(os.path.basename(tex.path))[0]
@@ -192,11 +203,14 @@ def main():
             images = os.path.join(folder, "images") + "/"
             group = [c for c in remaining
                      if c == tex or c.path == pdf or c.path.startswith(images)]
-            commit(repo, group, test)
+            groups.append(group)
             remaining = [c for c in remaining if c not in group]
-
         if remaining:
-            commit(repo, remaining, test)
+            groups.append(remaining)
+
+        # Oldest work first, so history reads in the order it was done.
+        for date, group in sorted(((work_date(repo, g), g) for g in groups), key=lambda x: x[0]):
+            commit(repo, group, date, test)
 
         if not test:
             print(git(repo, "log", "--oneline", f"{head_before}..HEAD").rstrip())
