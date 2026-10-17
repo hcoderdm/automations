@@ -1,6 +1,6 @@
 # Automations
 
-Small automated scripts to automatically run for my personal use on MacOS.
+Small automated scripts for my personal use on macOS.
 
 - [auto-commit-coursework](auto-commit-coursework) commits changes in `~/Documents/coursework` once a day.
 - [organize-old-downloads](organize-old-downloads) moves downloads added more than 30 days ago into `~/Downloads/YYYY/MM` once a day.
