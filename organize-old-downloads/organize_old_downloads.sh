@@ -1,9 +1,8 @@
 #!/bin/bash
-# Moves items in ~/Downloads older than 30 days into ~/Archive/Old Downloads/YYYY-MM.
+# Moves items in ~/Downloads older than 30 days into ~/Downloads/YYYY/MM, by modified date.
 # Triggered daily at 4:00 AM (and at login, to catch up on missed runs) by the launchd agent com.yourname.organize-old-downloads.
 
-SOURCE="$HOME/Downloads"
-DEST="$HOME/Archive/Old Downloads"
+DOWNLOADS="$HOME/Downloads"
 
 STAMP="$HOME/.local/state/organize-old-downloads/last_run"
 
@@ -15,13 +14,19 @@ last_4am=$(date -j -f "%Y-%m-%d %H:%M:%S" "$(date +%F) 04:00:00" +%s)
 last_run=$(cat "$STAMP" 2>/dev/null || echo 0)
 [ "$last_run" -ge "$last_4am" ] && exit 0
 
-mkdir -p "$DEST"
+# Without Full Disk Access for /bin/bash, launchd can't read ~/Downloads. Say so instead of
+# silently moving nothing, and don't stamp the run so it retries at next login.
+if ! ls "$DOWNLOADS" >/dev/null 2>&1; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') Stopped: can't read $DOWNLOADS (give /bin/bash Full Disk Access)"
+    exit 1
+fi
+
 echo "---------- $(date '+%Y-%m-%d %H:%M:%S') Starting cleanup ----------"
 
-find "$SOURCE" -mindepth 1 -maxdepth 1 -mtime +30 -print0 | while IFS= read -r -d '' item; do
+# Skip hidden files (.DS_Store, .localized) and the year folders themselves.
+find "$DOWNLOADS" -mindepth 1 -maxdepth 1 -mtime +30 ! -name '.*' ! -regex '.*/[0-9]\{4\}' -print0 | while IFS= read -r -d '' item; do
     mod_epoch=$(stat -f %m "$item")
-    year_month=$(date -r "$mod_epoch" +"%Y-%m")
-    target="$DEST/$year_month"
+    target="$DOWNLOADS/$(date -r "$mod_epoch" +%Y)/$(date -r "$mod_epoch" +%m)"
     mkdir -p "$target"
 
     name=$(basename "$item")
