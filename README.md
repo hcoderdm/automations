@@ -1,15 +1,26 @@
 # Automations
 
-Small scripts that run on their own on this Mac through launchd.
+Small automated scripts to automatically run for my personal use on MacOS.
 
 - [auto-commit-coursework](auto-commit-coursework) commits changes in `~/Documents/coursework` once a day.
 - [organize-old-downloads](organize-old-downloads) moves downloads added more than 30 days ago into `~/Downloads/YYYY/MM` once a day.
 
 Both are scheduled for 4:00 AM. If the Mac is asleep then, launchd runs them when it wakes, so the logs usually show a later time.
 
-Each folder has its script, a launchd plist, `install.sh` and `uninstall.sh`, and a link to its log in `~/Library/Logs`. Run `install.sh` in a folder to turn that one on, and `uninstall.sh` to turn it off. After editing a plist, run `install.sh` again to reload it.
+Each folder has its script, a launchd plist, an `automation.conf` describing it, and a link to its log in `~/Library/Logs`. Install and remove them from here:
 
-Both need Full Disk Access for `/bin/bash` (System Settings > Privacy & Security > Full Disk Access), since launchd jobs can't otherwise read `~/Documents` or `~/Downloads`.
+```bash
+# For all automations
+./install.sh
+./uninstall.sh
+# For a particular automation
+./install.sh organize-old-downloads
+./uninstall.sh organize-old-downloads
+```
+
+After editing a script or plist, run `./install.sh` for it again.
+
+macOS won't let a launchd job read `~/Documents` or `~/Downloads` without permission, so `install.sh` wraps each script in its own small app in `~/Applications/Automations` and asks macOS for access to just that job's folder. Please click Allow when it asks. Note that nothing needs Full Disk Access. The script is sealed inside the app, so editing it means reinstalling to rebuild the app, and macOS may ask for access again.
 
 To see what's loaded:
 
