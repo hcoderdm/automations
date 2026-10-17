@@ -1,8 +1,8 @@
 # Organize Old Downloads
 
-Moves anything in `~/Downloads` older than 30 days into a year folder and then a month folder inside `~/Downloads` (`2026/08`, `2026/09`, and so on). The year and month come from when the file was last modified. Hidden files and the year folders themselves are left alone.
+Moves anything added to `~/Downloads` more than 30 days ago into a year folder and then a month folder inside `~/Downloads` (`2026/08`, `2026/09`, and so on). The age, year and month come from the date the item was added to Downloads (falling back to its modified date when Spotlight doesn't know), since many downloads keep the server's modified date. Hidden files and the year folders themselves are left alone.
 
-It runs every day at 4:00 AM. It also runs at login, so if the Mac was off at 4:00 it catches up then. It only does the cleanup once per day either way.
+It's scheduled for 4:00 AM. If the Mac is asleep then, launchd runs it when the Mac wakes, and it also runs at login, so if the Mac was off it catches up then. It only does the cleanup once per day either way.
 
 If a file with the same name is already in the month folder, it leaves the download where it is and notes that in the log.
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Moves items in ~/Downloads older than 30 days into ~/Downloads/YYYY/MM, by modified date.
+# Moves items in ~/Downloads added more than 30 days ago into ~/Downloads/YYYY/MM, by date added.
 # Triggered daily at 4:00 AM (and at login, to catch up on missed runs) by the launchd agent com.yourname.organize-old-downloads.
 
 DOWNLOADS="$HOME/Downloads"
@@ -23,11 +23,24 @@ fi
 
 echo "---------- $(date '+%Y-%m-%d %H:%M:%S') Starting cleanup ----------"
 
+# When an item landed in Downloads. Modified dates are no good for this, since many downloads
+# keep the server's date; fall back to it only when Spotlight has no "date added".
+added_epoch() {
+    local added
+    added=$(mdls -raw -name kMDItemDateAdded "$1" 2>/dev/null)
+    if [ -n "$added" ] && [ "$added" != "(null)" ] && date -j -f "%Y-%m-%d %H:%M:%S %z" "$added" +%s 2>/dev/null; then
+        return
+    fi
+    stat -f %m "$1"
+}
+
+cutoff=$((now - 30 * 86400))
+
 # Skip hidden files (.DS_Store, .localized) and the year folders themselves.
-find "$DOWNLOADS" -mindepth 1 -maxdepth 1 -mtime +30 ! -name '.*' ! -regex '.*/[0-9]\{4\}' -print0 | while IFS= read -r -d '' item; do
-    mod_epoch=$(stat -f %m "$item")
-    target="$DOWNLOADS/$(date -r "$mod_epoch" +%Y)/$(date -r "$mod_epoch" +%m)"
-    mkdir -p "$target"
+find "$DOWNLOADS" -mindepth 1 -maxdepth 1 ! -name '.*' ! -regex '.*/[0-9]\{4\}' -print0 | while IFS= read -r -d '' item; do
+    added=$(added_epoch "$item")
+    [ "$added" -ge "$cutoff" ] && continue
+    target="$DOWNLOADS/$(date -r "$added" +%Y)/$(date -r "$added" +%m)"
 
     name=$(basename "$item")
     if [ -e "$target/$name" ]; then
@@ -35,7 +48,8 @@ find "$DOWNLOADS" -mindepth 1 -maxdepth 1 -mtime +30 ! -name '.*' ! -regex '.*/[
         continue
     fi
 
-    echo "$(date '+%Y-%m-%d %H:%M:%S') Moving: $item  →  $target  (modified: $(date -r "$mod_epoch"))"
+    mkdir -p "$target"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') Moving: $item  →  $target  (added: $(date -r "$added"))"
     mv -n "$item" "$target/"
 done
 
