@@ -8,12 +8,14 @@ If a file with the same name is already in the month folder, it leaves the downl
 
 ## Setup
 
+From the top-level folder:
+
 ```bash
-./install.sh
-./uninstall.sh
+./install.sh organize-old-downloads
+./uninstall.sh organize-old-downloads
 ```
 
-launchd needs permission to read `~/Downloads`: in System Settings > Privacy & Security > Full Disk Access, add `/bin/bash` (press Cmd+Shift+G in the file picker and type the path). Without it the log says it can't read Downloads, and it tries again at next login.
+`../install.sh` builds `~/Applications/Automations/OrganizeOldDownloads.app` with the script inside it and runs it once so macOS asks for access to `~/Downloads`. Click Allow. Only that app gets access, not bash or python. If you edit the script, install it again so the app picks up the change. To check or remove the access later, look under System Settings > Privacy & Security > Files & Folders.
 
 ## Running
 
@@ -23,4 +25,4 @@ launchd needs permission to read `~/Downloads`: in System Settings > Privacy & S
 
 If it already ran since the last 4:00 AM it exits without doing anything. Delete `~/.local/state/organize-old-downloads/last_run` to force it.
 
-The log is at `~/Library/Logs/OrganizeOldDownloads.log`, and `OrganizeOldDownloads.log` in this folder links to it.
+The log is at `~/Library/Logs/organize-old-downloads.log`, and `organize-old-downloads.log` in this folder links to it.

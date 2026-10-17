@@ -21,12 +21,14 @@ It's scheduled for 4:00 AM. If the Mac is asleep then, launchd runs it when the 
 
 ## Setup
 
+From the top-level folder:
+
 ```bash
-./install.sh
-./uninstall.sh
+./install.sh auto-commit-coursework
+./uninstall.sh auto-commit-coursework
 ```
 
-launchd needs permission to read `~/Documents`: in System Settings > Privacy & Security > Full Disk Access, add `/bin/bash` (press Cmd+Shift+G in the file picker and type the path). Without it the log shows `Operation not permitted`.
+`../install.sh` builds `~/Applications/Automations/AutoCommitCoursework.app` with the script inside it and runs it once so macOS asks for access to `~/Documents`. Click Allow. Only that app gets access, not bash or python. If you edit the script, install it again so the app picks up the change. To check or remove the access later, look under System Settings > Privacy & Security > Files & Folders.
 
 ## Running
 
@@ -37,4 +39,4 @@ launchd needs permission to read `~/Documents`: in System Settings > Privacy & S
 
 `--test` prints the commits it would make without making them. You can pass a different repo path as the last argument.
 
-The log is at `~/Library/Logs/coursework-autocommit.log`, and `coursework-autocommit.log` in this folder links to it.
+The log is at `~/Library/Logs/auto-commit-coursework.log`, and `auto-commit-coursework.log` in this folder links to it.
