@@ -28,6 +28,8 @@ YEAR_RE = re.compile(r"^\d{4}-\d{4}$")
 SEMESTERS = {"fall", "spring"}
 MAX_LEN = 72
 VERBS = {"A": "Added", "M": "Modified", "D": "Deleted", "R": "Renamed"}
+# What HEAD is compared against before the first commit.
+EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
 
 """
@@ -56,6 +58,14 @@ def git(repo, *args, env=None):
     if result.returncode != 0:
         raise GitError(f"git {' '.join(args)} failed: {result.stderr.strip()}")
     return result.stdout
+
+
+def head(repo):
+    """HEAD's commit, or None in a repo with no commits yet."""
+    try:
+        return git(repo, "rev-parse", "--verify", "-q", "HEAD").strip()
+    except GitError:
+        return None
 
 
 def preflight(repo):
@@ -90,7 +100,7 @@ def parse_name_status(out):
     return changes
 
 
-def working_changes(repo, git_dir):
+def working_changes(repo, git_dir, base):
     """Everything that differs from HEAD, with renames detected. Stages into a throwaway
     copy of the index so the real one is left alone."""
     fd, tmp_index = tempfile.mkstemp(prefix="autocommit-index-")
@@ -99,12 +109,15 @@ def working_changes(repo, git_dir):
         real_index = os.path.join(git_dir, "index")
         if os.path.exists(real_index):
             shutil.copyfile(real_index, tmp_index)
+        else:
+            os.remove(tmp_index)  # git rejects an empty file but makes a fresh index itself
         env = {"GIT_INDEX_FILE": tmp_index}
         git(repo, "add", "-A", env=env)
         return parse_name_status(
-            git(repo, "diff", "--cached", "-M", "-z", "--name-status", "HEAD", env=env))
+            git(repo, "diff", "--cached", "-M", "-z", "--name-status", base or EMPTY_TREE, env=env))
     finally:
-        os.remove(tmp_index)
+        if os.path.exists(tmp_index):
+            os.remove(tmp_index)
 
 
 def scope_for(tex_path):
@@ -148,7 +161,8 @@ def message_for(changes):
 
 def work_date(repo, changes):
     """When the work in a group was done: the newest mtime among its files still on disk."""
-    mtimes = [os.path.getmtime(os.path.join(repo, c.path))
+    # lstat so a broken symlink counts as itself instead of raising.
+    mtimes = [os.lstat(os.path.join(repo, c.path)).st_mtime
               for c in changes if c.status != "D" and os.path.lexists(os.path.join(repo, c.path))]
     return datetime.fromtimestamp(max(mtimes) if mtimes else time.time()).astimezone()
 
@@ -167,8 +181,12 @@ def commit(repo, changes, date, test):
     fd, tmp_index = tempfile.mkstemp(prefix="autocommit-index-")
     os.close(fd)
     try:
+        os.remove(tmp_index)  # git rejects an empty file but makes a fresh index itself
         env = {"GIT_INDEX_FILE": tmp_index}
-        git(repo, "read-tree", "HEAD", env=env)
+        if head(repo):
+            git(repo, "read-tree", "HEAD", env=env)
+        else:
+            git(repo, "read-tree", "--empty", env=env)
         if present:
             git(repo, "add", "-A", "--", *present, env=env)
         if gone:
@@ -176,7 +194,8 @@ def commit(repo, changes, date, test):
         git(repo, "commit", "-q", "-m", message,
             env={**env, "GIT_AUTHOR_DATE": date.isoformat(timespec="seconds")})
     finally:
-        os.remove(tmp_index)
+        if os.path.exists(tmp_index):
+            os.remove(tmp_index)
     git(repo, "reset", "-q", "--", *paths)
     log(f"Committed: {message}")
 
@@ -189,20 +208,25 @@ def main():
 
     try:
         git_dir = preflight(repo)
-        head_before = git(repo, "rev-parse", "HEAD").strip()
-        changes = working_changes(repo, git_dir)
+        head_before = head(repo)
+        changes = working_changes(repo, git_dir, head_before)
         if not changes:
             log("No changes")
             return
 
         groups, remaining = [], list(changes)
-        for tex in sorted((c for c in changes if c.path.endswith(".tex")), key=lambda c: c.path):
+        texes = sorted((c for c in changes if c.path.endswith(".tex")), key=lambda c: c.path)
+        tex_folders = [os.path.dirname(c.path) for c in texes]
+        for tex in texes:
             folder = os.path.dirname(tex.path)
             stem = os.path.splitext(os.path.basename(tex.path))[0]
             pdf = os.path.join(folder, stem + ".pdf")
+            # A shared images/ folder only goes with its .tex when that's the only changed one
+            # there; otherwise there's no telling which it belongs to, so it's left for REPO.
             images = os.path.join(folder, "images") + "/"
+            own_images = tex_folders.count(folder) == 1
             group = [c for c in remaining
-                     if c == tex or c.path == pdf or c.path.startswith(images)]
+                     if c == tex or c.path == pdf or (own_images and c.path.startswith(images))]
             groups.append(group)
             remaining = [c for c in remaining if c not in group]
         if remaining:
@@ -213,7 +237,8 @@ def main():
             commit(repo, group, date, test)
 
         if not test:
-            print(git(repo, "log", "--oneline", f"{head_before}..HEAD").rstrip())
+            log_range = [f"{head_before}..HEAD"] if head_before else []
+            print(git(repo, "log", "--oneline", *log_range).rstrip())
         leftovers = git(repo, "status", "--short").rstrip()
         if leftovers:
             print("Left uncommitted:\n" + leftovers)
