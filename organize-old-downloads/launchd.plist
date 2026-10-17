@@ -3,18 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.hcoderdm.organize-old-downloads</string>
+	<string>__LABEL__</string>
+	<!-- Runs the OrganizeOldDownloads app that ../install.sh builds, so the access to
+	     ~/Downloads is granted to that app alone. -->
 	<key>ProgramArguments</key>
 	<array>
-		<string>/bin/bash</string>
-		<string>__DIR__/organize_old_downloads.sh</string>
+		<string>__PROGRAM__</string>
 	</array>
+	<key>AssociatedBundleIdentifiers</key>
+	<string>__LABEL__</string>
 	<key>RunAtLoad</key>
 	<true/>
 	<key>StandardErrorPath</key>
-	<string>__HOME__/Library/Logs/OrganizeOldDownloads.log</string>
+	<string>__LOG__</string>
 	<key>StandardOutPath</key>
-	<string>__HOME__/Library/Logs/OrganizeOldDownloads.log</string>
+	<string>__LOG__</string>
 	<key>StartCalendarInterval</key>
 	<dict>
 		<key>Hour</key>

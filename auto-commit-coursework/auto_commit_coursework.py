@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Commits uncommitted changes in ~/Documents/coursework, one commit per changed .tex file.
 Local only: never pushes, pulls, amends, or rewrites history.
-Triggered daily by the launchd agent com.hcoderdm.coursework-autocommit.
+Triggered daily by the launchd agent com.hcoderdm.auto-commit-coursework.
 
 Usage: auto_commit_coursework.py [--test] [REPO]
   --test  print the commits that would be made without committing anything
