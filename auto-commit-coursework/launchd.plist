@@ -3,15 +3,15 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.yourname.coursework-autocommit</string>
-  <!-- Run through bash (not exec) so the Full Disk Access granted to /bin/bash covers
-       python and git reading ~/Documents. -->
+  <string>__LABEL__</string>
+  <!-- Runs the AutoCommitCoursework app that ../install.sh builds, so the access to
+       ~/Documents/coursework is granted to that app alone. -->
   <key>ProgramArguments</key>
   <array>
-    <string>/bin/bash</string>
-    <string>-c</string>
-    <string>/usr/bin/python3 '__DIR__/auto_commit_coursework.py'</string>
+    <string>__PROGRAM__</string>
   </array>
+  <key>AssociatedBundleIdentifiers</key>
+  <string>__LABEL__</string>
   <key>StartCalendarInterval</key>
   <dict>
     <key>Hour</key>
@@ -20,8 +20,8 @@
     <integer>0</integer>
   </dict>
   <key>StandardOutPath</key>
-  <string>__HOME__/Library/Logs/coursework-autocommit.log</string>
+  <string>__LOG__</string>
   <key>StandardErrorPath</key>
-  <string>__HOME__/Library/Logs/coursework-autocommit.log</string>
+  <string>__LOG__</string>
 </dict>
 </plist>

@@ -14,10 +14,10 @@ last_4am=$(date -j -f "%Y-%m-%d %H:%M:%S" "$(date +%F) 04:00:00" +%s)
 last_run=$(cat "$STAMP" 2>/dev/null || echo 0)
 [ "$last_run" -ge "$last_4am" ] && exit 0
 
-# Without Full Disk Access for /bin/bash, launchd can't read ~/Downloads. Say so instead of
+# Without access granted to the OrganizeOldDownloads app, launchd can't read ~/Downloads. Say so instead of
 # silently moving nothing, and don't stamp the run so it retries at next login.
 if ! ls "$DOWNLOADS" >/dev/null 2>&1; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') Stopped: can't read $DOWNLOADS (give /bin/bash Full Disk Access)"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') Stopped: can't read $DOWNLOADS (run ./install.sh organize-old-downloads and click Allow, or allow OrganizeOldDownloads in System Settings > Privacy & Security > Files & Folders)"
     exit 1
 fi
 
