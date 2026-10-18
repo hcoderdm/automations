@@ -316,12 +316,14 @@ def write_commit(repo: str, commit: Commit) -> None:
     
     # Build the commit in a git_scratch_index starting from HEAD.
     with git_scratch_index() as env:
-        # Read the tree from HEAD.
-        git(repo, "read-tree", "HEAD", env=env)
-        # Add the present paths.
-        git(repo, "add", "-A", "--", *present, env=env)
-        # Remove the gone paths.
-        git(repo, "rm", "-q", "--cached", "--ignore-unmatch", "--", *gone, env=env)
+        # Read the tree from HEAD, or start empty before the first commit.
+        git(repo, "read-tree", "HEAD" if git_head(repo) else "--empty", env=env)
+        # Add the present paths. With no paths, git would add everything.
+        if present:
+            git(repo, "add", "-A", "--", *present, env=env)
+        # Remove the gone paths. With no paths, git refuses to run.
+        if gone:
+            git(repo, "rm", "-q", "--cached", "--ignore-unmatch", "--", *gone, env=env)
         # Commit the changes.
         git(repo, "commit", "-q", "-m", commit.message, env={**env, "GIT_AUTHOR_DATE": commit.date.isoformat(timespec="seconds")})
     
