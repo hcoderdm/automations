@@ -1,6 +1,6 @@
 #!/bin/bash
 # Moves items in ~/Downloads added more than 30 days ago into ~/Downloads/YYYY/MM, by date added.
-# Triggered daily at 4:00 AM (and at login, to catch up on missed runs) by the launchd agent com.yourname.organize-old-downloads.
+# Triggered daily at 4:00 AM (and at login, to catch up on missed runs) by the launchd agent <LABEL_PREFIX>.organize-old-downloads.
 
 DOWNLOADS="$HOME/Downloads"
 
