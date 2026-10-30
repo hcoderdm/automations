@@ -6,4 +6,4 @@ Team practices and meets are ignored, and so are closures of pool areas I don't 
 
 It runs on claude.ai, not through launchd, so `install.sh` skips this folder. It's scheduled for `0 8 * * *` UTC, which is early morning in my timezone. It uses the Gmail and Google Calendar connectors.
 
-The routine's prompt on claude.ai is [prompt.md](prompt.md) followed by [template.md](template.md), which has the formats for every response it sends. Editing them here doesn't change the routine, so make the change on claude.ai too. The copies have `<your-name>` in place of my name.
+The routine's prompt on claude.ai is [prompt.md](prompt.md) followed by [template.md](template.md), which has the formats for every response it sends. Editing them here doesn't change the routine, so make the change on claude.ai too. The copies have placeholders like `<your-name>`, `<your-timezone>`, `<your-pool>`, `<your-other-pool>`, `<your-pool-hours-url>` and `<your-team>` in place of my details.
