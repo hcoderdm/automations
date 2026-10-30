@@ -14,12 +14,15 @@
 #   automation.conf  INTERPRETER, SCRIPT, ACCESS_DIR (relative to $HOME),
 #                    USAGE_KEY (e.g. NSDownloadsFolderUsageDescription), USAGE_TEXT
 #   launchd.plist    launchd plist with __LABEL__, __PROGRAM__ and __LOG__ placeholders
+# LABEL_PREFIX comes from .env (see .env.example) and defaults to com.<login name>.
 # The launchd label, app and log are named after the folder, so `organize-old-downloads` is
-# com.yourname.organize-old-downloads, OrganizeOldDownloads.app and organize-old-downloads.log.
+# <LABEL_PREFIX>.organize-old-downloads, OrganizeOldDownloads.app and organize-old-downloads.log.
 set -e
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 APPS="$HOME/Applications/Automations"
-PREFIX="com.yourname"
+# shellcheck source=/dev/null
+[ -f "$ROOT/.env" ] && . "$ROOT/.env"
+PREFIX="${LABEL_PREFIX:-com.$(id -un)}"
 
 # Builds $APPS/$APP_NAME.app around $DIR/$SCRIPT with launcher.c as its executable, and signs it.
 build_app() {
