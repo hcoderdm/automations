@@ -37,7 +37,9 @@ Source: [<email subject>](https://mail.google.com/mail/u/0/#all/<message-id>) --
 
 Reply with the IDs you want and I'll add exactly those to your calendar.
 
-<!-- Send a push notification: one line, under 200 characters, e.g. "4 events found. Top pick: Fall Kickoff Reception, Fri 09-04." -->
+<!-- Add the "RSVPs still needed" section here if step 8 found any, with its IDs continuing after this table's. -->
+
+<!-- Send a push notification: one line, under 200 characters, e.g. "4 events found. Top pick: Fall Kickoff Reception, Fri 09-04." If there are RSVPs still needed, add their count, e.g. "2 RSVPs still needed." -->
 <!-- Stop here. -->
 ```
 
@@ -52,7 +54,32 @@ Reply with the IDs you want and I'll add exactly those to your calendar.
 Every event I found is already on your calendar.
 I didn't find any upcoming events in the last 7 days of email.
 
-<!-- No push notification. Stop here. -->
+<!-- Add the "RSVPs still needed" section here if step 8 found any, with IDs starting at 0. -->
+
+<!-- Send a push notification only if there are RSVPs still needed: one line, under 200 characters, naming the soonest deadline, e.g. "2 RSVPs still needed. Soonest: Fall Kickoff Reception by Thu 09-03 5:00 PM." Otherwise no push notification. Stop here. -->
+```
+
+## RSVPs still needed
+
+This section is never a response on its own. It goes at the end of "Events found" or "Nothing to add" whenever step 8 finds events still waiting on an RSVP, and is left out entirely when there are none.
+
+```markdown
+### RSVPs still needed
+
+These are on your calendar, but I couldn't find a confirmation in your inbox and you haven't told me you RSVPed.
+
+| ID | Event | Date | Action | Link or Contact | Deadline | Notes |
+|---|---|---|---|---|---|---|
+| <id> | <event> | <date> | <action> | <link or contact> | <deadline> | <notes> |
+<!-- One row per tracked event without proof of an RSVP, sorted by deadline, soonest first, with no-deadline rows last.
+ID: keeps counting after the events found table, so every ID in the report is unique
+Event: the title as it is on the calendar
+Action: exactly what to do, e.g. Register at the link, Reply to the organizer, Buy a ticket, Fill out the form. If the deadline has passed, Deadline passed, check with the organizer
+Link or Contact: the registration link or contact from the email, or the source email link if there's neither
+Deadline: date and time, e.g. Thu 09-03 5:00 PM, or -
+Notes: subjectless fragment, e.g. Possible confirmation in [<email subject>](<link>), or Added to your calendar by you, not by me, or - -->
+
+If you've already RSVPed to any of these, tell me which and I'll mark them on your calendar.
 ```
 
 ## Events added
@@ -75,4 +102,15 @@ These still need an RSVP. Adding them to your calendar doesn't sign you up, and 
 Link or Contact: the registration link or contact from the email, or -
 Deadline: date and time, e.g. Thu 09-03 5:00 PM, or -
 If the email doesn't make clear whether an RSVP is needed, put "Unclear, check the source email" in Action and the source email link in Link or Contact. -->
+```
+
+## RSVPs marked
+
+```markdown
+Marked as RSVPed on your calendar:
+
+| ID | Event | Date |
+|---|---|---|
+| <id> | <event> | <date> |
+<!-- One row per event they said they RSVPed to, using the IDs from the "RSVPs still needed" section, or - if they named an event that wasn't in it. -->
 ```
