@@ -10,7 +10,8 @@ Mac Scripts:
 Claude routines:
 
 - [check-pool-hours](check-pool-hours) warns me if a pool won't be open for one of my swims in the next 3 days.
-- [scan-for-event-invites](scan-for-event-invites) finds events in my email, scores them, and adds the ones I pick to my calendar.
+- [scan-for-assignment-deadlines](scan-for-assignment-deadlines) finds coursework deadlines in my email that aren't on my calendar, or that moved, and adds the ones I pick.
+- [scan-for-event-invites](scan-for-event-invites) finds events in my email, scores them, adds the ones I pick to my calendar, and lists events I still need to RSVP to.
 
 The scripts are scheduled for 4:00 AM. If the Mac is asleep then, launchd runs them when it wakes, so the logs usually show a later time. The routines run on claude.ai on a schedule, not on this Mac. Each routine's folder has a copy of its prompt in `prompt.md` and its response formats in `template.md`. Editing them doesn't change the routine.
 
