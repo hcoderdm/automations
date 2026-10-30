@@ -1,21 +1,6 @@
 #!/usr/bin/env python3
-"""Commits uncommitted changes in ~/Documents/coursework, one commit per changed .tex file.
-Local only: never pushes, pulls, amends, or rewrites history.
-Triggered daily by the launchd agent com.yourname.auto-commit-coursework.
-
-Usage: auto_commit_coursework.py [--test] [REPO]
-  --test  print the commits that would be made without committing anything
-
-Commit messages follow `<COURSE> <ASSIGNMENT>: <Added|Modified|Deleted|Renamed> <file>`,
-e.g. `ABC101 HW3: Modified hw3.tex`. Leftover non-.tex changes go into one `REPO:` commit.
-Each commit's author date is when its files were last modified, not when this ran, and the
-commits are made oldest first.
-
-Every function is named `<phase>_<what>`, and the file reads top to bottom in run order:
-  git_*    talk to git (plumbing shared by the phases below)
-  read_*   find out what changed; touches nothing
-  plan_*   decide which commits to make; touches nothing
-  write_*  make the commits and report
+"""
+TODO: Add a description of the program.
 """
 
 from __future__ import annotations
@@ -87,19 +72,13 @@ def git(repo: str, *args: str, env: dict[str, str] | None = None) -> str:
     return result.stdout
 
 
-def git_head(repo: str) -> str | None:
-    """HEAD's commit, or None in a repo with no commits yet."""
-    try:
-        return git(repo, "rev-parse", "--verify", "-q", "HEAD").strip()
-    except GitError:
-        return None
-
-
-def git_check(repo: str) -> str:
+def get_git(repo: str) -> str:
     """Refuses to run in any state where committing could go wrong (detached HEAD, merge,
     rebase, cherry-pick, revert, index.lock). Returns the git dir."""
-    
+
+    # Get the git dir.
     git_dir = git(repo, "rev-parse", "--absolute-git-dir").strip()
+
     # Check for detached HEAD.
     if not git(repo, "branch", "--show-current").strip():
         raise GitError("detached HEAD")
@@ -117,6 +96,14 @@ def git_check(repo: str) -> str:
     
     # Return the git dir.
     return git_dir
+
+
+def git_head(repo: str) -> str | None:
+    """HEAD's commit, or None in a repo with no commits yet."""
+    try:
+        return git(repo, "rev-parse", "--verify", "-q", "HEAD").strip()
+    except GitError:
+        return None
 
 
 @contextmanager
@@ -145,21 +132,22 @@ def git_scratch_index(copy_from: str | None = None) -> Iterator[dict[str, str]]:
 
 
 # -------------------------------------
-# read_*
+# parse_args, get_changes
 # -------------------------------------
 
-def read_args(argv: list[str]) -> tuple[str, bool]:
-    """Returns (repo, test) from the command line."""
+def parse_args() -> argparse.Namespace:
+    """Returns the command line arguments."""
     
     # Parse the command line arguments.
     parser = argparse.ArgumentParser()
     parser.add_argument("--test", action="store_true")
     parser.add_argument("repo", nargs="?", default=DEFAULT_REPO)
-    args = parser.parse_args(argv)
-    return os.path.expanduser(args.repo), args.test
+    args = parser.parse_args()
+    args.repo = os.path.expanduser(args.repo)
+    return args
 
 
-def read_changes(repo: str, git_dir: str, base: str | None) -> list[Change]:
+def get_changes(repo: str, git_dir: str, base: str | None) -> list[Change]:
     """Everything that differs from base, with renames detected. Stages into a
     git_scratch_index copy of the real index so the real one is left alone."""
 
@@ -345,12 +333,13 @@ def write_log(repo: str) -> None:
 # -------------------------------------
 
 def main() -> None:
-    repo, test = read_args(sys.argv[1:])
+
+    # Parse arguments.
+    args = parse_args()
+
     try:
-        # Check the repo is in a valid state.
-        git_dir = git_check(repo)
-        # Read the changes from the repo.
-        changes = read_changes(repo, git_dir, git_head(repo))
+        git_dir = get_git(args.repo)
+        changes = get_changes(args.repo, git_dir, git_head(args.repo))
         
         # If there are no changes, log and return.
         if not changes:
@@ -358,21 +347,16 @@ def main() -> None:
             return
 
         # Plan the commits.
-        for commit in plan_commits(repo, changes):
-            if test:
-                # If testing, log the commit that would be made.
-                paths = sorted({p for c in commit.changes for p in (c.path, c.old) if p})
-                log(f"[test] {commit.date:%F %T} {commit.message}  <- {', '.join(paths)}")
-            else:
-                # If not testing, write the commit.
-                write_commit(repo, commit)
+        for commit in plan_commits(args.repo, changes):
+            if not args.test:
+                write_commit(args.repo, commit)
 
-        if not test:
-            # If not testing, write the report.
-            write_log(repo)
+        # If not testing, write the log.
+        if not args.test:
+            write_log(args.repo)
 
+    # If an exception is raised, log it and exit with status 1.
     except Exception as e:
-        # Log the error that caused the program to stop.
         log(f"Stopped: {e}" if isinstance(e, GitError) else f"Stopped: {type(e).__name__}: {e}")
         sys.exit(1)
 
