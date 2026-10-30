@@ -15,7 +15,7 @@ Claude routines:
 
 The scripts are scheduled for 4:00 AM. If the Mac is asleep then, launchd runs them when it wakes, so the logs usually show a later time. The routines run on claude.ai on a schedule, not on this Mac. Each routine's folder has a copy of its prompt in `prompt.md` and its response formats in `template.md`. Editing them doesn't change the routine.
 
-Each script's folder has the script, a launchd plist, an `automation.conf` describing it, and a link to its log in `~/Library/Logs`. Install and remove them from here:
+Each script's folder has the script, a launchd plist, an `automation.conf` describing it, and a link to its log in `~/Library/Logs`. The launchd labels start with `LABEL_PREFIX` from `.env`, or `com.<your login name>` if there's no `.env`. To set it, copy `.env.example` to `.env` and edit it. Install and remove them from here:
 
 ```bash
 # For all automations
@@ -33,5 +33,5 @@ macOS won't let a launchd job read `~/Documents` or `~/Downloads` without permis
 To see what's loaded:
 
 ```bash
-launchctl list | grep yourname
+launchctl list | grep organize-old-downloads
 ```
